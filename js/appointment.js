@@ -1,4 +1,5 @@
 const openBtn = document.getElementById("bookAppointmentBtn");
+const openBtns = document.querySelectorAll(".book-btn");
 const modal = document.getElementById("appointmentModal");
 const closeBtn = document.getElementById("closeModal");
 const form = document.getElementById("appointmentForm");
@@ -9,77 +10,114 @@ const API_BASE =
     ? "http://localhost:5000"
     : "https://ggnhpvtltd.vercel.app";
 
-openBtn.addEventListener("click", () => {
+function openModal() {
   modal.classList.add("show");
+  modal.setAttribute("aria-hidden", "false");
   msg.textContent = "";
-});
+  msg.style.color = "";
+}
 
-closeBtn.addEventListener("click", () => {
+function closeModal() {
   modal.classList.remove("show");
-});
+  modal.setAttribute("aria-hidden", "true");
+  msg.textContent = "";
+  msg.style.color = "";
+}
 
-modal.addEventListener("click", (e) => {
-  if (e.target === modal) modal.classList.remove("show");
-});
+if (modal) {
+  if (openBtn) openBtn.addEventListener("click", openModal);
 
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const submitBtn = form.querySelector('button[type="submit"]');
-
-  const data = {
-    name: form.name.value.trim(),
-    mobile: form.mobile.value.trim(),
-    age: Number(form.age.value),
-    gender: form.gender.value,
-  };
-
-  if (!/^\d{10}$/.test(data.mobile)) {
-    msg.textContent = "Enter a valid 10-digit mobile number.";
-    msg.style.color = "red";
-    return;
+  if (openBtns.length) {
+    openBtns.forEach((b) => b.addEventListener("click", openModal));
   }
 
-  if (data.age < 1 || data.age > 120) {
-    msg.textContent = "Enter a valid age (1 to 120).";
-    msg.style.color = "red";
-    return;
-  }
+  if (closeBtn) closeBtn.addEventListener("click", closeModal);
+}
 
-  submitBtn.disabled = true;
-  submitBtn.textContent = "Sending...";
+window.addEventListener("click", (e) => {
+  if (e.target === modal) closeModal();
+});
 
-  try {
-    const res = await fetch(`${API_BASE}/api/appointment`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && modal.classList.contains("show")) closeModal();
+});
 
-    const result = await res.json().catch(() => ({}));
+if (form)
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-    if (!res.ok) {
-      msg.textContent = result.message || "Failed to send";
+    const submitBtn = form.querySelector('button[type="submit"]');
+    msg.textContent = "";
+    msg.style.color = "";
+
+    const data = {
+      name: form.name.value.trim(),
+      mobile: form.mobile.value.trim(),
+      age: Number(form.age.value),
+      gender: form.gender.value,
+    };
+
+    if (!data.name) {
+      msg.textContent = "Enter your name";
       msg.style.color = "red";
-      submitBtn.disabled = false;
-      submitBtn.textContent = "Submit";
       return;
     }
 
-    msg.textContent = "Appointment request sent successfully!";
-    msg.style.color = "green";
-    form.reset();
+    if (!/^\d{10}$/.test(data.mobile)) {
+      msg.textContent = "Enter a valid 10-digit mobile number";
+      msg.style.color = "red";
+      return;
+    }
 
-    setTimeout(() => {
-      modal.classList.remove("show");
-      msg.textContent = "";
+    if (!Number.isFinite(data.age) || data.age < 1 || data.age > 120) {
+      msg.textContent = "Enter a valid age (1–120)";
+      msg.style.color = "red";
+      return;
+    }
+
+    if (!data.gender) {
+      msg.textContent = "Select gender";
+      msg.style.color = "red";
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Sending...";
+
+    try {
+      const res = await fetch(`${API_BASE}/api/appointment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      let result = {};
+      try {
+        result = await res.json();
+      } catch (_) {}
+
+      if (!res.ok) {
+        msg.textContent = result.message || "Failed to send";
+        msg.style.color = "red";
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit";
+        return;
+      }
+
+      msg.textContent =
+        result.message || "Appointment request sent successfully!";
+      msg.style.color = "green";
+      form.reset();
+
+      setTimeout(() => {
+        closeModal();
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit";
+      }, 1500);
+    } catch (err) {
+      msg.textContent = "Backend not running or network error";
+      msg.style.color = "red";
       submitBtn.disabled = false;
       submitBtn.textContent = "Submit";
-    }, 1500);
-  } catch (err) {
-    msg.textContent = "Backend not running or network error";
-    msg.style.color = "red";
-    submitBtn.disabled = false;
-    submitBtn.textContent = "Submit";
-  }
-});
+    }
+  });
