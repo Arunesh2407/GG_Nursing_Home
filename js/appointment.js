@@ -4,6 +4,11 @@ const closeBtn = document.getElementById("closeModal");
 const form = document.getElementById("appointmentForm");
 const msg = document.getElementById("formMessage");
 
+const API_BASE =
+  location.hostname === "localhost"
+    ? "http://localhost:5000"
+    : "https://ggnhpvtltd.vercel.app";
+
 openBtn.addEventListener("click", () => {
   modal.classList.add("show");
   msg.textContent = "";
@@ -26,10 +31,9 @@ form.addEventListener("submit", async (e) => {
     name: form.name.value.trim(),
     mobile: form.mobile.value.trim(),
     age: Number(form.age.value),
-    gender: form.gender.value
+    gender: form.gender.value,
   };
 
-  // Validation
   if (!/^\d{10}$/.test(data.mobile)) {
     msg.textContent = "Enter a valid 10-digit mobile number.";
     msg.style.color = "red";
@@ -42,15 +46,14 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
-  // Disable button while sending
   submitBtn.disabled = true;
   submitBtn.textContent = "Sending...";
 
   try {
-    const res = await fetch("http://localhost:5000/api/appointment", {
+    const res = await fetch(`${API_BASE}/api/appointment`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
 
     const result = await res.json().catch(() => ({}));
