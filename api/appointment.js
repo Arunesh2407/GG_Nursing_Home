@@ -1,20 +1,24 @@
 import nodemailer from "nodemailer";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ ok: false });
-  }
-
   try {
+    if (req.method !== "POST") {
+      return res.status(405).json({ ok: false, message: "Method not allowed" });
+    }
+
+    const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+
     const { name, phone, email, department, doctor, date, time, message } =
-      req.body || {};
+      body || {};
 
     if (!name || !phone) {
-      return res.status(400).json({ ok: false });
+      return res.status(400).json({ ok: false, message: "Missing fields" });
     }
 
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
@@ -22,7 +26,7 @@ export default async function handler(req, res) {
     });
 
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+      from: `"GG Nursing Home" <${process.env.EMAIL_USER}>`,
       to: process.env.TO_EMAIL || process.env.EMAIL_USER,
       subject: `New Appointment: ${name}`,
       text:
@@ -37,7 +41,8 @@ export default async function handler(req, res) {
     });
 
     return res.status(200).json({ ok: true });
-  } catch (e) {
-    return res.status(500).json({ ok: false });
+  } catch (err) {
+    console.error("Appointment API error:", err);
+    return res.status(500).json({ ok: false, error: err.message });
   }
 }
