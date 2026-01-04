@@ -91,7 +91,7 @@ footer {
 
 /* ========== Quick Links ========== */
 .quick-links {
-  background: #0a3560;
+  background: #369ab5;
   border-bottom: 1px solid #e5e7eb;
 }
 
@@ -132,15 +132,15 @@ footer {
 
 /* green button */
 .book-btn {
-  background: #16a34a !important;
-  border-color: #16a34a !important;
+  background: #e33e3e !important;
+  border-color: #0d0e0d !important;
   color: #ffffff !important;
 }
 
 .book-btn:hover {
-  background: #15803d !important;
-  border-color: #15803d !important;
-  color: #ffffff !important;
+  background: #0a0705b7 !important;
+  border-color: #150e03 !important;
+  color: #fdfdfd !important;
 }
 
 /* ========== Hero ========== */
